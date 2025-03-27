@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Simulation - Mess Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .simulation-container {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 30px auto;
+            padding: 30px;
+            background-color: white;
+            max-width: 600px;
+        }
+        .status-text {
+            font-size: 18px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .meal-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <div class="simulation-container">
+            <h2 class="text-center mb-4">QR Code Verification</h2>
+            
+            <div class="meal-info">
+                <h4>Current Meal Information:</h4>
+                <p><strong>Time:</strong> {{ current_time.strftime('%I:%M %p') }}</p>
+                {% if current_meal %}
+                    <p><strong>Meal:</strong> {{ current_meal }}</p>
+                    {% if menu %}
+                        <p><strong>Veg Menu:</strong> {{ menu.veg_menu }}</p>
+                        {% if menu.non_veg_menu %}
+                            <p><strong>Non-Veg Menu:</strong> {{ menu.non_veg_menu }}</p>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <p class="text-warning">No meal is currently being served.</p>
+                {% endif %}
+            </div>
+
+            <div class="text-center">
+                <p class="status-text" id="statusText">Ready to simulate QR code verification</p>
+                
+                <div class="mt-4">
+                    {% if current_meal and menu %}
+                        <button id="simulateButton" class="btn btn-primary btn-lg me-2" onclick="simulateVerification()">
+                            Simulate QR Code
+                        </button>
+                    {% else %}
+                        <button class="btn btn-primary btn-lg me-2" disabled>
+                            Simulate QR Code
+                        </button>
+                    {% endif %}
+                    <a href="{{ url_for('home') }}" class="btn btn-secondary btn-lg">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function simulateVerification() {
+            const button = document.getElementById('simulateButton');
+            const statusText = document.getElementById('statusText');
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+            statusText.textContent = 'Verifying meal selection...';
+            
+            fetch('{{ url_for("simulate_verification") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusText.textContent = 'Verification successful! Redirecting...';
+                    window.location.href = data.redirect_url;
+                } else {
+                    statusText.textContent = data.error || 'Verification failed';
+                    button.disabled = false;
+                    button.textContent = 'Simulate QR Code';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                statusText.textContent = 'An error occurred. Please try again.';
+                button.disabled = false;
+                button.textContent = 'Simulate QR Code';
+            });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

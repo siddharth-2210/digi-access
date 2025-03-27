@@ -1,0 +1,6 @@
+Flask
+Flask-Login
+Flask-SQLAlchemy
+email-validator
+qrcode[pil]
+SQLAlchemy 
